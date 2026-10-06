@@ -37,7 +37,8 @@ nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding
 nav button{flex:1;border:0;background:none;color:var(--mute);padding:10px 0 9px;font:inherit;font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:3px}
 nav button span{font-size:20px;line-height:1}
 nav button.on{color:var(--brand);font-weight:700}
-:root[data-theme="dark"] nav button.on,@media (prefers-color-scheme:dark){nav button.on{color:var(--mint)}}
+:root[data-theme="dark"] nav button.on{color:var(--mint)}
+@media (prefers-color-scheme:dark){nav button.on{color:var(--mint)}}
 h2{font-size:26px;letter-spacing:-.6px;margin:8px 0 14px}
 h3{font-size:16px;margin:20px 0 10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:10px}
