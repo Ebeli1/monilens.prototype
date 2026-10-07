@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MoniLens prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F1F4F0;--card:#fff;--ink:#14201B;--mute:#65746D;--line:#DCE4DE;--brand:#0D1B2A;--on:#fff;--mint:#00C896;--me:#0F4C3A;--bot:#fff;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1410;--card:#15211B;--ink:#EAF1EC;--mute:#8FA097;--line:#243229;--brand:#0B7A5C;--bot:#15211B}}
+:root[data-theme="dark"]{--bg:#0C1410;--card:#15211B;--ink:#EAF1EC;--mute:#8FA097;--line:#243229;--brand:#0B7A5C;--bot:#15211B}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:15px}
+#app{max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+header{padding:14px 20px 10px;display:flex;align-items:center;gap:10px}
+.hl{width:32px;height:32px;border-radius:8px}
+header b{font-size:18px;letter-spacing:-.3px}
+main{flex:1;overflow-y:auto;padding:0 16px 16px}
+.pg{display:none}.pg.on{display:block}
+#chat.on{display:flex;flex-direction:column;min-height:100%}
+#msgs{flex:1;display:flex;flex-direction:column;gap:8px;padding-bottom:8px}
+.m{max-width:82%;padding:10px 14px;border-radius:18px;line-height:1.4;white-space:pre-line;animation:in .2s}
+@keyframes in{from{opacity:0;transform:translateY(4px)}}
+.m.b{background:var(--bot);border:1px solid var(--line);border-bottom-left-radius:5px;align-self:flex-start}
+.m.u{background:var(--me);color:var(--on);border-bottom-right-radius:5px;align-self:flex-end}
+.m .act{display:block;margin-top:10px;background:var(--mint);color:#14201B;border:0;border-radius:99px;padding:8px 14px;font:700 14px inherit;font-family:inherit}
+.dots{display:flex;gap:4px;padding:14px}.dots i{width:6px;height:6px;border-radius:50%;background:var(--mute);animation:bl 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bl{50%{opacity:.25}}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 0 10px}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:8px 13px;font:inherit;font-size:13.5px}
+.cbar{display:flex;gap:8px;position:sticky;bottom:0;background:var(--bg);padding-top:4px}
+.cbar input{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:13px 18px;font:inherit;outline:0}
+.cbar input:focus,.btn:focus-visible,.chip:focus-visible,nav button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.send{width:46px;border:0;border-radius:50%;background:var(--brand);color:#fff;font-size:18px}
+nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;background:none;color:var(--mute);padding:10px 0 9px;font:inherit;font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button span{font-size:20px;line-height:1}
+nav button.on{color:var(--brand);font-weight:700}
+:root[data-theme="dark"] nav button.on,@media (prefers-color-scheme:dark){nav button.on{color:var(--mint)}}
+h2{font-size:26px;letter-spacing:-.6px;margin:8px 0 14px}
+h3{font-size:16px;margin:20px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:10px}
+.goal{display:flex;gap:14px;align-items:center;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.goal .e{font-size:28px;width:48px;height:48px;border-radius:14px;background:var(--bg);display:grid;place-items:center;flex:none}
+.goal .t{flex:1}.goal small,.mute{color:var(--mute)}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden;margin:10px 0 6px}.bar i{display:block;height:100%;background:var(--brand);border-radius:9px}
+:root[data-theme="dark"] .bar i{background:var(--mint)}
+.big{font-size:34px;font-weight:700;letter-spacing:-1px}
+.row{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line)}.row:first-child{border-top:0}
+.btn{width:100%;border:0;border-radius:14px;background:var(--brand);color:#fff;padding:14px;font:700 15px inherit;font-family:inherit}
+.btn.g{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.back{border:0;background:none;color:var(--mute);font:inherit;padding:4px 0 0}
+input.f{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:12px;font:inherit;margin-bottom:8px}
+.steps{display:flex;flex-direction:column;gap:0}.st{display:flex;gap:12px;align-items:center;padding:6px 0}
+.st u{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);background:var(--card);flex:none;text-decoration:none;position:relative}
+.st.d u{background:var(--brand);border-color:var(--brand)}.st.now u{border-color:#F2B632;background:#F2B632}
+.st.now b{color:var(--ink)}.st{color:var(--mute)}
+.pos{background:var(--brand);color:#fff;border-radius:18px;padding:20px;margin-bottom:10px}.pos .big{font-size:52px;color:var(--mint)}
+.tag{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--bg);color:var(--mute)}
+.sw{width:46px;height:28px;border-radius:99px;background:var(--line);border:0;position:relative}.sw:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}.sw.on{background:var(--brand)}.sw.on:after{left:21px}
+.av{width:64px;height:64px;border-radius:50%;background:var(--mint);color:#14201B;display:grid;place-items:center;font-size:26px;font-weight:700}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+#gate{position:fixed;inset:0;z-index:10;background:#0E1B2B;color:#fff;display:flex;justify-content:center;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow-y:auto}
+body.in #gate{display:none}
+body:not(.in) header,body:not(.in) main,body:not(.in) nav{display:none}
+.gin{width:100%;max-width:430px;margin:auto;padding:28px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.gin[hidden]{display:none}
+.coin{perspective:700px;margin-bottom:8px}.coin img{width:170px;height:170px;display:block;animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotateY(360deg)}}
+.gin h1{font-size:40px;letter-spacing:-1.2px;margin:0}.gin h1 span{color:#00C896}
+.gin h2{font-size:26px;letter-spacing:-.6px;margin:0}
+.gin p{color:#9FB0BF;margin:0 0 8px;line-height:1.45}
+.gbtn{width:100%;border:0;border-radius:14px;background:#00C896;color:#0E1B2B;padding:15px;font:700 16px inherit;font-family:inherit}
+.glink{border:0;background:none;color:#00C896;font:600 15px inherit;font-family:inherit;padding:10px}
+.gin label{width:100%;text-align:left;font-size:13px;color:#9FB0BF;display:block}
+.gin input{width:100%;margin-top:6px;border:1px solid #2A3D52;background:#16263A;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:16px;outline:0}
+.gin input:focus,.gbtn:focus-visible,.glink:focus-visible{outline:2px solid #00C896;outline-offset:2px}
+.ph{display:flex;gap:8px;margin-top:6px}.ph span{flex:none;border:1px solid #2A3D52;background:#16263A;border-radius:12px;padding:14px 12px;font-size:16px}.ph input{margin:0}
+.gin .back{align-self:flex-start;background:none;border:0;color:#9FB0BF;padding:4px 0}
+.gin img.mini{width:64px;height:64px;border-radius:14px}
+#gerr{min-height:20px;color:#FF8A80;font-size:14px;width:100%;text-align:left}
+[hidden]{display:none!important}
+.tc{width:100%;display:flex;gap:14px;align-items:center;text-align:left;border:1px solid #2A3D52;background:#16263A;color:#fff;border-radius:16px;padding:16px;font:inherit}
+.tc b{display:block;font-size:17px;margin-bottom:2px}.tc small{color:#9FB0BF;line-height:1.35}.tc .ti{font-size:30px}
+.tc:hover,.tc:focus-visible{border-color:#00C896;outline:0}
+body:not(.biz) .bz{display:none}
+#cust.on.thr{display:flex;flex-direction:column;min-height:100%}
+.owed{background:var(--brand);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px}.owed .big{font-size:30px;color:var(--mint)}
+.eng{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:2px 0 8px}.eng small{color:var(--mute);font-size:12px}
+.seg{padding:6px 11px;font-size:12.5px}.seg.sel{background:var(--brand);color:#fff;border-color:var(--brand)}
+.simnote{font-size:11.5px;color:var(--mute);width:100%}
+.why{display:block;border:0;background:none;color:var(--mute);font:inherit;font-size:12.5px;padding:8px 0 0;text-decoration:underline}
+.stp{display:none;font-size:12.5px;color:var(--mute);margin-top:6px}.stp.on{display:block}.stp ol{margin:4px 0 0;padding-left:18px}.stp li{margin:3px 0}
+.tr{font-style:italic;margin-top:6px;font-size:14px;opacity:.9}
+.mic{flex:none;width:46px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:50%;font-size:18px}
+</style>
+</head>
+<body>
+<div id="gate">
+ <div class="gin" id="g-land">
+  <div class="coin"><img class="lg" alt="MoniLens logo"></div>
+  <h1>Moni<span>Lens</span></h1>
+  <p>Talk to your money.<br>English, Pidgin or Igbo.</p>
+  <button class="gbtn" id="go-signup" type="button">Get started</button>
+  <button class="glink" id="go-login" type="button">I already have an account</button>
+ </div>
+ <div class="gin" id="g-type" hidden>
+  <button type="button" class="back" id="gback2">‹ Back</button>
+  <h2>How will you use MoniLens?</h2><p>Pick one and we'll set things up to match.</p>
+  <button type="button" class="tc" data-t="personal"><span class="ti">🙋</span><span><b>Personal</b><small>Track your money, save for goals and join the housing queue</small></span></button>
+  <button type="button" class="tc" data-t="business"><span class="ti">🏪</span><span><b>Business</b><small>Track sales, save for stock and rent, and chat with your saved customers</small></span></button>
+ </div>
+ <div class="gin" id="g-form" hidden>
+  <button type="button" class="back chip" id="gback">‹ Back</button>
+  <img class="lg mini" alt="">
+  <h2 id="gtitle"></h2><p id="gsub"></p>
+  <label>Your name<input id="gname" autocomplete="given-name" placeholder="Ebeli"></label>
+  <label id="bizl">Business name<input id="gbiz" placeholder="Ebeli Fabrics"></label>
+  <label>Phone number<div class="ph"><span>🇳🇬 +234</span><input id="gphone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="801 234 5678"></div></label>
+  <div id="gerr" role="alert"></div>
+  <button type="button" class="gbtn" id="gsubmit"></button>
+  <button type="button" class="glink" id="gswap"></button>
+ </div>
+</div>
+<div id="app">
+<header><img class="lg hl" alt=""><b>MoniLens</b></header>
+<main>
+ <section id="chat" class="pg on">
+  <div class="eng" id="eng"><small>AI engine:</small><button type="button" class="chip seg" data-e="rules">Rules</button><button type="button" class="chip seg" data-e="natlas">N-ATLAS</button><button type="button" class="chip seg" data-e="hybrid">Hybrid</button><button type="button" class="chip seg" id="offb"></button><span class="simnote">Simulated demo. Not connected to the real N-ATLAS.</span></div>
+  <div id="msgs"></div>
+  <div class="chips" id="chips"></div>
+  <div class="cbar" id="f"><input id="txt" placeholder="Type a message..." autocomplete="off" aria-label="Message"><button type="button" class="mic" id="micbtn" aria-label="Send a voice note">🎤</button><button type="button" class="send" id="sendbtn" aria-label="Send">➤</button></div>
+ </section>
+ <section id="esc" class="pg"></section>
+ <section id="save" class="pg"></section>
+ <section id="cust" class="pg"></section>
+ <section id="me" class="pg"></section>
+</main>
+<nav id="nav">
+ <button data-p="chat" class="on"><span>💬</span>Chat</button>
+ <button data-p="esc"><span>🛟</span>Escalate</button>
+ <button data-p="save"><span>🐖</span>Save</button>
+ <button data-p="cust" class="bz"><span>👥</span>Customer</button>
+ <button data-p="me"><span>🙂</span>Me</button>
+</nav>
+</div>
+<script>
+// MONILENS PROTOTYPE: everything lives in this one file so it runs by double-clicking it.
+// HOW IT IS ORGANISED (search for these names):
+//   S            the app's data (name, balance, goals, customers ...). Resets when the page reloads, except the saved account.
+//   reply()      the RULES chatbot: keywords -> intent -> answer text
+//   fakeNat()    a PRETEND N-ATLAS, so you can see the AI switch. It is not the real model.
+//   answer()     the AI SWITCH: Rules | N-ATLAS | Hybrid, with the offline fallback
+//   render*()    draw each screen (Escalate, Save, Customer, Me)
+//   gate code    landing, Personal/Business choice, signup and login (name + phone)
+// This is a design prototype. The real, working version is the React + Express + Supabase project.
+const $=s=>document.querySelector(s),N=n=>'₦'+Math.round(n).toLocaleString('en-NG');
+const S={name:'Ebeli',phone:'',ai:'hybrid',off:false,type:'personal',biz:'',customers:[],cv:null,avail:84500,lang:'auto',notif:true,queue:247,
+ goals:[{k:'house',e:'🏠',n:'House',saved:250000,target:8000000,m:50000},{k:'edu',e:'🎓',n:'Education',saved:120000,target:500000,m:20000}],
+ tx:[['Shoprite',-12400,'Today'],['Salary',180000,'Mon'],['Bolt',-3200,'Sun'],['MTN data',-5000,'Sat']],
+ tickets:[['#ML1024','Resolved'],['#ML1018','Resolved']],view:null};
+const saved=()=>S.goals.reduce((a,g)=>a+g.saved,0);
+let LANG='en';
+/* language detection */
+function detect(t){const s=t.toLowerCase();
+ if(/kedu|biko|\bego\b|achọrọ|achorо|ụlọ|ulo\b|ọ dị|nke m|daalụ|\bm ga\b|ọnụ ọgụgụ|ndị/.test(s))return'ig';
+ if(/how far|wetin|abeg|\bdey\b|\bwan\b|i get|i fit|\bna\b|wey|una\b|i no |wahala|for the house|how much i/.test(s))return'pg';
+ return'en'}
+// T = reply wording for each intent in English (en), Pidgin (pg) and Igbo (ig). The Igbo is a draft to be checked by a native speaker.
+const T={
+ hi:{en:()=>'Hello! How can I help you with your money today?',pg:()=>'I dey fine! How I fit help you today?',ig:()=>'Ọ dị mma! Kedu ka m ga-esi nyere gị aka?'},
+ bal:{en:()=>`You have ${N(S.avail)} available.\nYou also have ${N(saved())} in your savings goals.`,pg:()=>`You get ${N(S.avail)} available.\nYou also get ${N(saved())} for your savings goals.`,ig:()=>`Ị nwere ${N(S.avail)} dị.\nỊ nwekwara ${N(saved())} n'ọnụọgụgụ nkwụnye ego gị.`},
+ tx:{en:()=>'Your recent transactions:\n'+S.tx.map(t=>`${t[2]}: ${t[0]} ${t[1]<0?'-':'+'}${N(Math.abs(t[1]))}`).join('\n'),pg:()=>'Your last transactions be these:\n'+S.tx.map(t=>`${t[2]}: ${t[0]} ${t[1]<0?'-':'+'}${N(Math.abs(t[1]))}`).join('\n'),ig:()=>'Azụmahịa gị ndị ọhụrụ:\n'+S.tx.map(t=>`${t[2]}: ${t[0]} ${t[1]<0?'-':'+'}${N(Math.abs(t[1]))}`).join('\n')},
+ sp:{en:()=>`You spent ${N(96300)} this month. Food and transport took the biggest share.`,pg:()=>`You don spend ${N(96300)} this month. Food and transport chop most.`,ig:()=>`Ị mefuru ${N(96300)} n'ọnwa a. Nri na njem were ọtụtụ.`},
+ sv:{en:()=>`You have ${N(saved())} across ${S.goals.length} goals:\n`+S.goals.map(g=>`${g.e} ${g.n}: ${N(g.saved)}`).join('\n'),pg:()=>`You get ${N(saved())} for ${S.goals.length} goals:\n`+S.goals.map(g=>`${g.e} ${g.n}: ${N(g.saved)}`).join('\n'),ig:()=>`Ị nwere ${N(saved())} n'ebumnuche ${S.goals.length}:\n`+S.goals.map(g=>`${g.e} ${g.n}: ${N(g.saved)}`).join('\n')},
+ hg:{en:g=>`Your house goal is already active: ${N(g.saved)} saved toward ${N(g.target)}, ${N(g.m)} a month. Ask "where am I on the housing list?" to see your queue.`,pg:g=>`Your house goal don dey: ${N(g.saved)} don enter, target na ${N(g.target)}, ${N(g.m)} every month. Ask me "where I dey for house queue?"`,ig:g=>`Ebumnuche ụlọ gị na-arụ ọrụ: ${N(g.saved)} n'ime ${N(g.target)}, ${N(g.m)} kwa ọnwa.`},
+ hq:{en:()=>`You're currently #${S.queue} on the housing queue.\n246 people are ahead of you. (Simulated data)`,pg:()=>`You dey #${S.queue} for the housing queue.\n246 people dey ahead of you. (Simulated data)`,ig:()=>`Ị nọ na #${S.queue} n'ahịrị ụlọ.\nMmadụ 246 nọ n'ihu gị. (Data ngosi)`},
+ cg:{en:(a)=>`Done. I created a goal to save ${N(a)} every month. I'll show it on your Save tab.`,pg:(a)=>`E don set. I create goal make you save ${N(a)} every month. You fit see am for Save tab.`,ig:(a)=>`Emere ya. Emepụtara m ebumnuche ịchekwa ${N(a)} kwa ọnwa. Lee ya na Save.`},
+ esc:{en:()=>`I can explain it, but if you'd prefer to speak with someone, I can escalate this conversation.`,pg:()=>`I fit explain am, but if you wan talk to person, I fit escalate am.`,ig:()=>`Enwere m ike ịkọwa ya, mana ọ bụrụ na ịchọrọ ikwu na mmadụ, m nwere ike ịkwalite ya.`},
+ help:{en:()=>'I can show your balance, transactions, spending, and savings, set a savings goal, or check your housing queue.',pg:()=>'I fit show your balance, transactions, spending, savings, set savings goal, or check your housing queue.',ig:()=>'Enwere m ike igosi ego gị, azụmahịa, mmefu, nkwụnye ego, ma lelee ahịrị ụlọ.'}
+};
+// amt(): finds an amount in text. '50k' -> 50000, '1.5m' -> 1500000.
+function amt(s){const m=s.replace(/,/g,'').match(/(\d+(?:\.\d+)?)\s*(k|m|million|thousand)?/i);if(!m)return null;let v=+m[1];const u=(m[2]||'').toLowerCase();if(u=='k'||u=='thousand')v*=1e3;if(u=='m'||u=='million')v*=1e6;return v}
+// Customers who still owe money (used by the 'Who owes me?' answer).
+function owedList(){return S.customers.filter(c=>c.owed>0)}
+// THE RULES CHATBOT. Order matters: the first matching keyword wins.
+// `canon` is optional: when the pretend N-ATLAS understands a message, it passes a clean version here
+// (e.g. 'how much do i have') so the same answers can be reused. Language still comes from the original text.
+function reply(t,canon){const s=(canon||t).toLowerCase();LANG=S.lang==='auto'?detect(t):S.lang;const L=LANG,house=S.goals.find(g=>g.k=='house');
+ if(S.type==='business'&&/customer|owe|debt|ndị ahịa/.test(s)){const o=owedList(),tot=o.reduce((a,c)=>a+c.owed,0),rows=o.map(c=>`${c.name}: ${N(c.owed)}`).join('\n');return[L==='pg'?`You get ${S.customers.length} customers. ${o.length} dey owe you ${N(tot)}:\n${rows}`:L==='ig'?`Ị nwere ndị ahịa ${S.customers.length}. ${o.length} ji gị ${N(tot)}:\n${rows}`:`You have ${S.customers.length} customers. ${o.length} owe you ${N(tot)}:\n${rows}`,'CUST']}
+ if(S.type!=='business'&&/queue|list|position|where am i|where i dey|ebe m nọ|ahịrị/.test(s))return[T.hq[L]()];
+ if(S.type!=='business'&&/house|ulo\b|ụlọ/.test(s)&&/save|want|wan|achọrọ|chekwa/.test(s))return[T.hg[L](house)];
+ if(/save|chekwa/.test(s)&&/\d/.test(s)&&/month|every|kwa/.test(s)){const a=amt(s);S.goals.push({k:'g'+Date.now(),e:'💰',n:'Monthly savings',saved:0,target:a*12,m:a});render();return[T.cg[L](a)]}
+ if(/human|support|agent|person|don'?t understand|no understand|aghọtaghị|nyere/.test(s))return[T.esc[L](),'ESC'];
+ if(/transaction|azụmahịa|azumahia/.test(s))return[T.tx[L]()];
+ if(/spen|mefu|chop/.test(s))return[T.sp[L]()];
+ if(/saving|goal/.test(s))return[T.sv[L]()];
+ if(/how much|much i|ego ole|balance|ego m|ego\b/.test(s))return[T.bal[L]()];
+ if(/help|nyere m|\?$/.test(s)&&/help|nyere/.test(s))return[T.help[L]()];
+ if(/how far|kedu|hello|hi\b|hey|good/.test(s))return[T.hi[L]()];
+ return[T.help[L]()]}
+/* chat */
+const msgs=$('#msgs');
+// Adds one chat bubble. c = 'u' (user) or 'b' (MoniLens). esc adds a button (Escalate / Open Customers).
+// meta adds the 'How it worked' panel showing which engine answered and why.
+function add(t,c,esc,meta){const d=document.createElement('div');d.className='m '+c;d.textContent=t;
+ if(esc){const b=document.createElement('button');b.className='act';b.textContent=esc==='CUST'?'Open Customers':'Escalate';b.onclick=()=>{if(esc==='CUST')go('cust');else{go('esc');openTicket()}};d.appendChild(b)}
+ if(meta){const w=document.createElement('button');w.type='button';w.className='why';w.textContent='How it worked ▾';const l=document.createElement('div');l.className='stp';l.innerHTML='<b>Answered by: '+meta.engine+'</b><ol>'+meta.steps.map(x=>'<li>'+x.replace(/</g,'&lt;')+'</li>').join('')+'</ol>';w.onclick=()=>{l.classList.toggle('on');w.textContent=l.classList.contains('on')?'Hide ▴':'How it worked ▾'};d.appendChild(w);d.appendChild(l)}
+ msgs.appendChild(d);d.scrollIntoView({block:'end'});return d}
+// A typed message: show it, then respond(). respond() shows the typing dots and then the answer.
+function say(t){add(t,'u');respond(t,false)}
+function respond(t,voice){const ty=document.createElement('div');ty.className='m b dots';ty.innerHTML='<i></i><i></i><i></i>';msgs.appendChild(ty);ty.scrollIntoView({block:'end'});
+ setTimeout(()=>{ty.remove();const o=answer(t,voice);add(o.text,'b',o.flag,o.meta)},650)}
+// Pretend voice note: shows a voice bubble, 'Transcribing...', then the words, then answers like typed text.
+function sayVoice(t){const d=add('🎤 ▂▄▆▄▂▅▃▂▄  0:04','u');const n=document.createElement('div');n.className='tr';n.textContent='Transcribing…';d.appendChild(n);setTimeout(()=>{n.textContent='“'+t+'”';respond(t,true)},1000)}
+/* AI engine switch (simulated): Rules | N-ATLAS | Hybrid */
+// labelIntent(): names the intent a text would match with the rules (BALANCE, SPENDING ...). Used for the 'How it worked' panel.
+function labelIntent(s){s=s.toLowerCase();
+ if(S.type==='business'&&/customer|owe|debt|ndị ahịa/.test(s))return'CUSTOMERS';
+ if(S.type!=='business'&&/queue|list|position|where am i|where i dey|ebe m nọ|ahịrị/.test(s))return'HOUSING_QUEUE';
+ if(S.type!=='business'&&/house|ulo\b|ụlọ/.test(s)&&/save|want|wan|achọrọ|chekwa/.test(s))return'HOUSING_GOAL';
+ if(/save|chekwa/.test(s)&&/\d/.test(s)&&/month|every|kwa/.test(s))return'CREATE_SAVINGS_GOAL';
+ if(/human|support|agent|person|don'?t understand|no understand|aghọtaghị|nyere/.test(s))return'ESCALATE';
+ if(/transaction|azụmahịa|azumahia/.test(s))return'TRANSACTIONS';
+ if(/spen|mefu|chop/.test(s))return'SPENDING';
+ if(/saving|goal/.test(s))return'SAVINGS';
+ if(/how much|much i|ego ole|balance|ego m|ego\b/.test(s))return'BALANCE';
+ if(/how far|kedu|hello|hi\b|hey|good/.test(s))return'GREETING';
+ return'HELP'}
+// FAKE N-ATLAS: understands looser wording the rules miss (e.g. 'wetin remain for my account').
+// It returns a confidence between 0 and 1; Hybrid mode only trusts it above 0.7.
+function fakeNat(t){const s=t.toLowerCase(),a=amt(s);
+ const loose=[
+  [/remain|left in|in my account|my money (be|dey)|ego fọdụrụ/,'how much do i have','BALANCE',.93],
+  [/(spend|spent|use|used|mefu).*(food|transport|data|airtime|nri|njem)/,'how much did i spend','SPENDING',.9],
+  [/(put|set|keep) (it )?aside|set aside/,a?`save ${a} every month`:null,'CREATE_SAVINGS_GOAL',.88],
+  [/(own|buy|build|get).*(house|home)|ụlọ nke m/,'i want to save for a house','HOUSING_GOAL',.87],
+  [/never pay|no pay|not pay|unpaid|debtor|who still/,'who owes me','CUSTOMERS',.9],
+  [/talk to (a )?(real )?(person|human|someone)|speak to|complain|real person/,'human','ESCALATE',.92]];
+ for(const [re,canon,intent,c] of loose){if(!re.test(s)||!canon)continue;if((intent==='CUSTOMERS'&&S.type!=='business')||(intent==='HOUSING_GOAL'&&S.type==='business'))continue;return{canon,conf:c,intent}}
+ const i=labelIntent(s);if(i!=='HELP')return{canon:t,conf:.97,intent:i};
+ return{canon:null,conf:.3,intent:'UNKNOWN'}}
+// THE SWITCH, as in the backend:
+//   Rules   -> keywords only
+//   N-ATLAS -> the pretend model only (if 'offline', say so)
+//   Hybrid  -> pretend model first; keywords if it is offline or unsure
+// The steps list becomes the 'How it worked' panel.
+function answer(t,voice){const steps=[];if(voice)steps.push(`🎤 N-ATLAS speech recognition (simulated) wrote down: “${t}”`);
+ let engine='Rules',canon=null,intent;
+ const useRules=()=>{engine='Rules';intent=labelIntent(t);steps.push(intent==='HELP'?'Rules looked for a matching keyword and found none':'Rules matched a keyword → intent '+intent)};
+ if(S.ai==='rules')useRules();
+ else if(S.off){
+  if(S.ai==='natlas')return{text:"I can't reach N-ATLAS right now. Please try again, or switch to Hybrid.",flag:null,meta:{engine:'N-ATLAS (offline)',steps:steps.concat(['Tried to contact the N-ATLAS server: no answer','Engine is set to N-ATLAS only, so there is no backup'])}};
+  steps.push('Tried N-ATLAS: server did not answer → using Rules as the backup');useRules();engine='Rules (backup)'}
+ else{const n=fakeNat(t);
+  if(S.ai==='hybrid'&&n.conf<.7){steps.push(`N-ATLAS was only ${Math.round(n.conf*100)}% sure → asked Rules too`);useRules();engine='Rules (after N-ATLAS was unsure)'}
+  else{engine='N-ATLAS';canon=n.canon;steps.push(n.canon?`N-ATLAS (simulated) understood: intent ${n.intent}, ${Math.round(n.conf*100)}% sure`:`N-ATLAS was only ${Math.round(n.conf*100)}% sure → asks the user to rephrase`)}}
+ const r=reply(t,canon),lang={pg:'Pidgin',ig:'Igbo',en:'English'}[LANG];
+ if(engine==='N-ATLAS'&&canon)steps.push('MoniLens code (not the AI) looked up your data and did the work');
+ steps.push(`Reply written in ${lang}`);
+ return{text:r[0],flag:r[1],meta:{engine,steps}}}
+function engUI(){document.querySelectorAll('.seg[data-e]').forEach(b=>b.classList.toggle('sel',b.dataset.e===S.ai));$('#offb').textContent=S.off?'🔴 N-ATLAS offline':'🟢 N-ATLAS online'}
+document.querySelectorAll('.seg[data-e]').forEach(b=>b.onclick=()=>{S.ai=b.dataset.e;engUI()});$('#offb').onclick=()=>{S.off=!S.off;engUI()};engUI();
+/* voice door (simulated): pick a pretend voice note */
+// The microphone cannot be tested in a prototype, so tapping 🎤 offers pretend voice notes to choose from.
+function voicePicker(){const c=$('#chips');c.innerHTML='';const l=document.createElement('span');l.className='mute';l.style.cssText='font-size:12.5px;align-self:center;flex:none';l.textContent='🎤 Pretend you said:';c.appendChild(l);
+ const ex=S.type==='business'?[['Pidgin','Abeg, wetin remain for my account?'],['Igbo','Kedu ego m nwere?'],['Pidgin','Who never pay me?'],['English','I want to put aside 30k every month']]:[['Pidgin','Abeg, wetin remain for my account?'],['Igbo','Kedu ego m nwere?'],['Pidgin','Abeg help me get my own house'],['English','I want to put aside 30k every month']];
+ ex.forEach(([lg,t])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=lg+': “'+t+'”';b.onclick=()=>{buildChips();sayVoice(t)};c.appendChild(b)});
+ const x=document.createElement('button');x.type='button';x.className='chip';x.textContent='✕ Cancel';x.onclick=buildChips;c.appendChild(x)}
+$('#micbtn').onclick=voicePicker;
+function sendInput(){const v=$('#txt').value.trim();if(!v)return;$('#txt').value='';say(v)}
+$('#sendbtn').onclick=sendInput;$('#txt').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendInput()}});
+function buildChips(){const c=$('#chips');c.innerHTML='';(S.type==='business'?['How far?','How much I get?','Wetin remain for my account?','Who owes me?','Show me my transactions','I want to save ₦50k every month',"I don't understand this transaction",'Kedu?']:['How far?','How much I get?','Wetin remain for my account?','Show me my transactions','I want to save ₦50k every month','I want to save for a house','Where am I for the house?',"I don't understand this transaction",'Kedu?']).forEach(t=>{const b=document.createElement('button');b.className='chip';b.textContent=t;b.type='button';b.onclick=()=>say(t);c.appendChild(b)})}
+function greet(){msgs.innerHTML='';add(S.type==='business'?`👋 How far, ${S.name}?\nWetin you wan do for ${S.biz} today?`:`👋 How far, ${S.name}?\nWetin you wan do today?`,'b')}
+/* nav */
+function go(p){document.querySelectorAll('.pg').forEach(x=>x.classList.toggle('on',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.p===p));S.view=null;S.cv=null;render()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.p));
+/* escalate */
+let ticket=null;
+function openTicket(){ticket=[['MoniLens','Your request has been passed to support. Ticket #ML1031.']];render();setTimeout(()=>{ticket.push(['Support','Hi Ebeli, this is Ada from MoniLens support. I can see the transaction. Give me a moment.']);render()},1800)}
+function renderEsc(){const e=$('#esc');
+ if(ticket){e.innerHTML=`<button class="back" onclick="ticket=null;render()">‹ Back</button><h2>Support #ML1031</h2>`+ticket.map(t=>`<div class="m ${t[0]=='Support'?'b':'b'}" style="max-width:100%;margin-bottom:8px"><small class="mute">${t[0]}</small><br>${t[1]}</div>`).join('')+`<p class="mute">Typical reply time: a few minutes (simulated).</p>`;return}
+ e.innerHTML=`<h2>Need a human?</h2><p class="mute" style="margin-top:-8px">We're here to help.</p><button class="btn" onclick="openTicket()">Talk to support</button>
+ <h3>Recent conversations</h3><div class="card">${S.tickets.map(t=>`<div class="row"><span>Support ${t[0]}</span><span class="tag">${t[1]}</span></div>`).join('')}</div>`}
+/* save */
+function goalCard(g,i){const p=Math.min(100,g.saved/g.target*100);return `<button class="card goal" onclick="S.view=${i};render()"><div class="e">${g.e}</div><div class="t"><b>${g.n}</b><div class="bar"><i style="width:${Math.max(p,2)}%"></i></div><small>${N(g.saved)} of ${N(g.target)}</small></div></button>`}
+function renderSave(){const e=$('#save');
+ if(S.view==='new'){e.innerHTML=`<button class="back" onclick="S.view=null;render()">‹ Back</button><h2>New goal</h2><input class="f" id="gn" placeholder="What are you saving for?"><input class="f" id="gt" inputmode="numeric" placeholder="Target amount (₦)"><input class="f" id="gm" inputmode="numeric" placeholder="Monthly amount (₦)"><button class="btn" onclick="addGoal()">Create goal</button>`;return}
+ if(typeof S.view==='number'){const g=S.goals[S.view],p=Math.min(100,g.saved/g.target*100);
+  e.innerHTML=`<button class="back" onclick="S.view=null;render()">‹ Back</button><h2>${g.e} ${g.n} goal</h2><div class="card"><small class="mute">Saved</small><div class="big">${N(g.saved)}</div><div class="bar"><i style="width:${Math.max(p,2)}%"></i></div><small class="mute">${p.toFixed(1)}% of target</small>
+  <div class="row" style="margin-top:12px"><span>Target</span><b>${N(g.target)}</b></div><div class="row"><span>Monthly</span><b>${N(g.m)}</b></div><div class="row"><span>Next contribution</span><b>${N(g.m)}</b></div></div>
+  <button class="btn" onclick="contribute(${S.view})">Add ${N(g.m)} now</button>`+(g.k=='house'?housing():'');return}
+ e.innerHTML=`<h2>What are you saving for?</h2>`+S.goals.map(goalCard).join('')+`<button class="btn g" onclick="S.view='new';render()">+ New goal</button>`}
+function housing(){const st=[['Savings','d'],['Financial history','d'],['Eligibility','now'],['Housing queue',''],['Housing opportunity','']];
+ return `<h3>🏠 Your housing journey</h3><div class="card"><div class="steps">${st.map(s=>`<div class="st ${s[1]}"><u></u><b>${s[0]}</b></div>`).join('')}</div></div>
+ <div class="pos"><small>Your position</small><div class="big">#${S.queue}</div><small>246 people ahead of you</small></div>
+ <div class="card"><div class="row"><span>Your savings</span><b>${N(S.goals[0].saved)}</b></div><div class="row"><span>Monthly commitment</span><b>${N(S.goals[0].m)}</b></div></div><p class="mute" style="font-size:12.5px">Simulated data. This tests the concept and is not a real housing allocation.</p>`}
+function contribute(i){const g=S.goals[i];g.saved+=g.m;if(g.k=='house')S.queue=Math.max(1,S.queue-3);render()}
+function addGoal(){const n=$('#gn').value.trim()||'New goal',t=+($('#gt').value.replace(/\D/g,''))||100000,m=+($('#gm').value.replace(/\D/g,''))||10000;S.goals.push({k:'g'+Date.now(),e:'🎯',n,saved:0,target:t,m});S.view=null;render()}
+/* me */
+function renderMe(){const lg={auto:'Automatic',en:'English',pg:'Pidgin',ig:'Igbo'};
+ $('#me').innerHTML=`<div style="display:flex;gap:14px;align-items:center;margin:8px 0 6px"><div class="av">${S.name[0]}</div><div><h2 style="margin:0">${S.name}</h2><small class="mute">${S.type==='business'?S.biz+' · Business':'Personal'}</small></div></div>
+ <h3>Financial profile</h3><div class="card"><div class="row"><span>Available</span><b>${N(S.avail)}</b></div><div class="row"><span>Savings</span><b>${N(saved())}</b></div><div class="row"><span>Active goals</span><b>${S.goals.length}</b></div>${S.type==='business'?`<div class="row"><span>Customers</span><b>${S.customers.length}</b></div><div class="row"><span>Owed to you</span><b>${N(S.customers.reduce((a,c)=>a+c.owed,0))}</b></div>`:`<div class="row"><span>Housing queue</span><b>#${S.queue}</b></div>`}</div>
+ <h3>Preferences</h3><div class="card"><div class="row"><span>Language</span><button class="chip" onclick="cycle()">${lg[S.lang]} ⟳</button></div><div class="row"><span>Notifications</span><button class="sw ${S.notif?'on':''}" onclick="S.notif=!S.notif;render()" aria-label="Notifications"></button></div></div>
+ <h3>Security</h3><div class="card"><div class="row"><span>Account</span><span class="mute">${S.phone}</span></div><div class="row"><span>Help</span><span class="mute" onclick="go('esc')">›</span></div><div class="row"><span>Session</span><button class="chip" onclick="logout()">Sign out</button></div></div>`}
+function cycle(){const o=['auto','en','pg','ig'];S.lang=o[(o.indexOf(S.lang)+1)%4];render()}
+function render(){renderEsc();renderSave();renderCust();renderMe()}
+render();
+/* auth gate: name + phone, no password or code */
+const LOGO='data:image/jpeg;base64,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';
+document.querySelectorAll('img.lg').forEach(i=>i.src=LOGO);
+const mem={};const ls={get:k=>{try{return localStorage.getItem(k)}catch{return mem[k]||null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{mem[k]=v}},del:k=>{try{localStorage.removeItem(k)}catch{delete mem[k]}}};
+// Starter data: personal accounts get House + Education goals; business accounts get Stock + Rent goals and 3 customers.
+function seed(){const bz=S.type==='business';S.avail=bz?312400:84500;S.queue=247;S.view=null;S.cv=null;
+ S.goals=bz?[{k:'stock',e:'📦',n:'Stock restock',saved:180000,target:600000,m:40000},{k:'shop',e:'🏪',n:'Shop rent',saved:90000,target:450000,m:30000}]:[{k:'house',e:'🏠',n:'House',saved:250000,target:8000000,m:50000},{k:'edu',e:'🎓',n:'Education',saved:120000,target:500000,m:20000}];
+ S.tx=bz?[['Shop sales',150000,'Today'],['Restock',-85000,'Mon'],['Transport',-6500,'Sun'],['Customer payment',45000,'Sat']]:[['Shoprite',-12400,'Today'],['Salary',180000,'Mon'],['Bolt',-3200,'Sun'],['MTN data',-5000,'Sat']];
+ S.customers=bz?[{id:'c1',name:'Mama Chika',phone:'0803 456 7890',owed:45000,msgs:[{f:'them',t:'Please keep 5 bags of rice for me.'},{f:'me',t:'Sure ma, they are ready.'}]},{id:'c2',name:'Tunde Auto Parts',phone:'0812 345 6701',owed:0,msgs:[{f:'them',t:'Payment sent. Please confirm.'},{f:'me',t:'Confirmed, thank you!'}]},{id:'c3',name:'Grace Fabrics',phone:'0907 654 3210',owed:120000,msgs:[{f:'me',t:'Hello Grace, your invoice is due this Friday.'}]}]:[]}
+/* customers (business) */
+const qa=t=>t.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+const bub=m=>`<div class="m ${m.f==='me'?'u':'b'}">${m.t.replace(/</g,'&lt;')}</div>`;
+// CUSTOMER screen (business only): list, add form, or one customer's thread. Customer replies are simulated.
+function renderCust(){const e=$('#cust'),c=S.customers.find(x=>x.id===S.cv);e.classList.toggle('thr',!!c);
+ if(S.cv==='new'){e.innerHTML=`<button class="back" onclick="S.cv=null;render()">‹ Back</button><h2>Add customer</h2><input class="f" id="cn" placeholder="Customer name"><input class="f" id="cp" type="tel" inputmode="tel" placeholder="Phone number"><input class="f" id="co" inputmode="numeric" placeholder="Amount they owe you (₦, optional)"><button class="btn" onclick="addCust()">Save customer</button>`;return}
+ if(c){const fn=c.name.split(' ')[0];e.innerHTML=`<button class="back" onclick="S.cv=null;render()">‹ Customers</button>
+ <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><div><b>${c.name}</b><br><small class="mute">${c.phone}</small></div><div style="text-align:right"><small class="mute">Owes you</small><br><b>${N(c.owed)}</b>${c.owed?`<br><button class="chip" style="margin-top:6px" onclick="paid('${c.id}')">Mark paid</button>`:''}</div></div>
+ <div id="cm" style="flex:1;display:flex;flex-direction:column;gap:8px;padding-bottom:8px">${c.msgs.length?c.msgs.map(bub).join(''):'<p class="mute" style="text-align:center">No messages yet. Say hello 👋</p>'}</div>
+ <div class="chips"><button class="chip" onclick="csend('${qa(`Hello ${fn}, a friendly reminder that ${c.owed?N(c.owed):'your balance'} is outstanding. Thank you! - ${S.biz}`)}')">Payment reminder</button><button class="chip" onclick="csend('${qa(`Thank you for your business, ${fn}!`)}')">Thank you</button><button class="chip" onclick="csend('You can pay to my account. I will send the details now.')">Share account details</button></div>
+ <div class="cbar"><input id="ci" onkeydown="if(event.key==='Enter'){event.preventDefault();csend(this.value);this.value=''}" placeholder="Message ${fn}..." autocomplete="off" aria-label="Message customer"><button type="button" class="send" onclick="const i=document.getElementById('ci');csend(i.value);i.value=''" aria-label="Send">➤</button></div>`;
+  const cm=$('#cm');cm.lastElementChild&&cm.lastElementChild.scrollIntoView({block:'end'});return}
+ const tot=S.customers.reduce((a,c)=>a+c.owed,0);
+ e.innerHTML=`<h2>Customers</h2><div class="owed"><small>Owed to you</small><div class="big">${N(tot)}</div><small>${S.customers.filter(c=>c.owed>0).length} of ${S.customers.length} customers owe you</small></div>`+
+ (S.customers.length?S.customers.map(c=>{const l=c.msgs[c.msgs.length-1];return `<button class="card goal" onclick="S.cv='${c.id}';render()"><div class="e">${c.name[0]}</div><div class="t"><b>${c.name}</b><br><small>${l?l.t.slice(0,40):c.phone}</small></div>${c.owed?`<span class="tag">${N(c.owed)}</span>`:''}</button>`}).join(''):'<p class="mute">No customers yet. Add your first one.</p>')+
+ `<button class="btn g" onclick="S.cv='new';render()">+ Add customer</button>`}
+function addCust(){const n=$('#cn').value.trim();if(n.length<2)return;S.customers.push({id:'c'+Date.now(),name:n,phone:$('#cp').value.trim()||'No phone',owed:+($('#co').value.replace(/\D/g,''))||0,msgs:[]});S.cv=null;render()}
+function paid(id){const c=S.customers.find(x=>x.id===id);c.owed=0;c.msgs.push({f:'me',t:'Payment received, thank you!'});render()}
+function csend(t){t=t.trim();const c=S.customers.find(x=>x.id===S.cv);if(!t||!c)return;const cm=$('#cm');if(cm&&!c.msgs.length)cm.innerHTML='';c.msgs.push({f:'me',t});if(cm){cm.insertAdjacentHTML('beforeend',bub({f:'me',t}));cm.lastElementChild.scrollIntoView({block:'end'})}
+ setTimeout(()=>{const r=/remind|outstanding|owe/i.test(t)?'Okay, I will send it by Friday 🙏':/account/i.test(t)?'Received, thanks!':/thank/i.test(t)?'You are welcome!':'Okay, noted 👍';c.msgs.push({f:'them',t:r});if(S.cv===c.id){const m=$('#cm');m.insertAdjacentHTML('beforeend',bub({f:'them',t:r}));m.lastElementChild.scrollIntoView({block:'end'})}},900)}
+let mode='signup',pick='personal';
+const normPhone=v=>{let d=v.replace(/\D/g,'');if(d.startsWith('234'))d=d.slice(3);if(d.startsWith('0'))d=d.slice(1);return d};
+const fmtPhone=d=>'+234 '+d.slice(0,3)+' '+d.slice(3,6)+' '+d.slice(6);
+const cap=n=>n.trim().split(/\s+/)[0].replace(/^./,c=>c.toUpperCase());
+// GATE = the screens before the app: land (spinning logo), type (Personal/Business), signup, login.
+function gateTo(m){mode=m;const f=m==='signup'||m==='login';$('#g-land').hidden=m!=='land';$('#g-type').hidden=m!=='type';$('#g-form').hidden=!f;if(!f)return;$('#gerr').textContent='';
+ const su=m==='signup',bz=su&&pick==='business';$('#bizl').hidden=!bz;
+ $('#gtitle').textContent=su?(bz?'Create your business account':'Create your account'):'Welcome back';$('#gsub').textContent=su?(bz?'Your name, business name and phone number.':'Just your name and phone number.'):'Log in with your name and phone number.';
+ $('#gsubmit').textContent=su?'Create account':'Log in';$('#gswap').textContent=su?'I already have an account':'New here? Create account';$('#gname').focus()}
+$('#go-signup').onclick=()=>gateTo('type');$('#go-login').onclick=()=>gateTo('login');
+document.querySelectorAll('.tc').forEach(b=>b.onclick=()=>{pick=b.dataset.t;gateTo('signup')});
+$('#gswap').onclick=()=>gateTo(mode==='signup'?'login':'type');
+$('#gback').onclick=()=>gateTo(mode==='signup'?'type':'land');$('#gback2').onclick=()=>gateTo('land');
+function enter(a){S.type=a.type||'personal';S.biz=a.biz||'';seed();document.body.classList.toggle('biz',S.type==='business');buildChips();S.name=cap(a.name);S.phone=fmtPhone(a.phone);document.body.classList.add('in');ls.set('ml_in','1');greet();go('chat')}
+// Signup or login. Uses buttons instead of an HTML form on purpose: preview panes often block form submission.
+// The account is saved in the browser (localStorage) only for this demo. No server and no verification code.
+function gateSubmit(){const name=$('#gname').value,ph=normPhone($('#gphone').value),err=$('#gerr');
+ if(name.trim().length<2){err.textContent='Please enter your name.';return}
+ if(!/^[789]\d{9}$/.test(ph)){err.textContent='Enter a valid Nigerian phone number, like 801 234 5678.';return}
+ const biz=$('#gbiz').value.trim();if(mode==='signup'&&pick==='business'&&biz.length<2){err.textContent='Please enter your business name.';return}
+ const a={name:name.trim(),phone:ph,type:mode==='signup'?pick:'personal',biz};
+ if(mode==='signup'){ls.set('ml_acct',JSON.stringify(a));enter(a);return}
+ let saved=null;try{saved=JSON.parse(ls.get('ml_acct'))}catch{}
+ if(!saved||saved.phone!==ph){err.textContent="We couldn't find an account with that number. Create one instead?";return}
+ if(cap(saved.name).toLowerCase()!==cap(name).toLowerCase()){err.textContent='That name does not match this number. Try again.';return}
+ enter(saved)}
+$('#gsubmit').onclick=gateSubmit;
+$('#g-form').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();gateSubmit()}});
+// Sign out and return to the login screen. The saved account stays so you can log back in.
+function logout(){ls.del('ml_in');$('#gbiz').value='';document.body.classList.remove('in');$('#gname').value='';$('#gphone').value='';gateTo('login')}
+(function init(){let a=null;try{a=JSON.parse(ls.get('ml_acct'))}catch{}
+ if(a&&ls.get('ml_in')==='1')enter(a);else if(a)gateTo('login');else gateTo('land')})();
+</script>
+</body>
+</html>
